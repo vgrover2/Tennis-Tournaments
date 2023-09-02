@@ -14,9 +14,9 @@ source("../scripts/ggprob.R")
 
 ## Introduction
 
-Tennis, a fascinating and global sport with its fast-paced action has taken our interest in analyzing player performance. In this report, we will explore the 2022 tour-level main draw matches on hard courts, examining the proportion of winners based on dominant hand and the impact of age on player performance.
-Using our data set, we aim to uncover insights into the dynamics between left and right-handed players and discover how age shapes player outcomes. 
-Employing graphical tools and visual summaries, we delve into our data, intending to present key findings and interpretations.
+Tennis, a fascinating and global sport with its fast-paced action has taken our interest in analyzing player performance. In this report, I will explore the 2022 tour-level main draw matches on hard courts, examining the proportion of winners based on dominant hand and the impact of age on player performance.
+Using my data set, I aim to uncover insights into the dynamics between left and right-handed players and discover how age shapes player outcomes. 
+Employing graphical tools and visual summaries, I delve into this data, intending to present key findings and interpretations.
 
 
 ## Background
@@ -25,13 +25,13 @@ The data set is a set of data that follows tennis tournaments and includes varia
 
 I am citing github.com^[https://github.com/JeffSackmann/tennis_atp/blob/master/atp_matches_2022.csv].
 
-Our thesis asserts that left-handed players will demonstrate a higher winning proportion than right-handed players, and age will have a significant impact on player performance in 2022 tour-level main draw matches on hard courts.
+My thesis asserts that left-handed players will demonstrate a higher winning proportion than right-handed players, and age will have a significant impact on player performance in 2022 tour-level main draw matches on hard courts.
 
-To better comprehend comprehend our thesis, we are specifying the variable `surface` and only using data from hard surfaces. For the first portion of the thesis, the data relates to this as it specifies the hand of the winner and the hand of the loser. For the second portion of the thesis, the data set specifies age of the winners and losers. By using these variables in relation to one another, we can find the proportion of winners based on age or hand (and how the proportion of winners vary between left and right hands). 
+To better comprehend my thesis, I am specifying the variable `surface` and only using data from hard surfaces. For the first portion of the thesis, the data relates to this as it specifies the hand of the winner and the hand of the loser. For the second portion of the thesis, the data set specifies age of the winners and losers. By using these variables in relation to one another, I can find the proportion of winners based on age or hand (and how the proportion of winners vary between left and right hands). 
 
 An unusual factor that affects the question of whether left-handed players will demonstrate a higher winning proportion than right-handed players, include the number of right handed vs left handed players in the data set. There are many more right handed players than left handed. Another unusual factor with the second portion of the thesis regarding age is that age can lead to higher level of experience as well as a lower overall physical ability. This distinction of age can affect how one interprets the results (whether one won/lost because of lack of skill or age). 
 
-In the rest of the report we intend to use graphs and visual summaries to further analyze our data. An intended graph is one that shows the proportion of winners based on dominant hand, and another intended graph is a plot of winners and losers based on age. After further analyzing this data we intend to interpret our findings and if needed come up with different methods or graphs we can use to further test both parts of our thesis. 
+In the rest of the report I intend to use graphs and visual summaries to further analyze this data. An intended graph is one that shows the proportion of winners based on dominant hand, and another intended graph is a plot of winners and losers based on age. After further analyzing this data I intend to interpret our findings and if needed come up with different methods or graphs we can use to further test both parts of our thesis. 
 
 
 
