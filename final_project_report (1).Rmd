@@ -1,0 +1,257 @@
+---
+title: "Final Project Report"
+author: "Group 314:1"
+date: "2023-08-10"
+output: html_document
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(tidyverse)
+library(ggplot2)
+source("../scripts/ggprob.R")
+```
+
+## Group Members
+
+1. Zach Wilcox
+
+2. Vedant Grover
+
+3. Livia Chandra
+
+4. Angelina Raj
+
+## Introduction
+
+Tennis, a fascinating and global sport with its fast-paced action has taken our interest in analyzing player performance. In this report, we will explore the 2022 tour-level main draw matches on hard courts, examining the proportion of winners based on dominant hand and the impact of age on player performance.
+Using our data set, we aim to uncover insights into the dynamics between left and right-handed players and discover how age shapes player outcomes. 
+Employing graphical tools and visual summaries, we delve into our data, intending to present key findings and interpretations.
+
+
+## Background
+
+The data set is a set of data that follows tennis tournaments and includes variables like type of surface, result of match, date, etc. This data was collected by Jeff Sackmann and added to github.com. The variables of focus is the "winner" and "loser" of the 2022 tour-level main draw tennis matches, played on the "hard" surface court.
+
+I am citing github.com^[https://github.com/JeffSackmann/tennis_atp/blob/master/atp_matches_2022.csv].
+
+Our thesis asserts that left-handed players will demonstrate a higher winning proportion than right-handed players, and age will have a significant impact on player performance in 2022 tour-level main draw matches on hard courts.
+
+To better comprehend comprehend our thesis, we are specifying the variable `surface` and only using data from hard surfaces. For the first portion of the thesis, the data relates to this as it specifies the hand of the winner and the hand of the loser. For the second portion of the thesis, the data set specifies age of the winners and losers. By using these variables in relation to one another, we can find the proportion of winners based on age or hand (and how the proportion of winners vary between left and right hands). 
+
+An unusual factor that affects the question of whether left-handed players will demonstrate a higher winning proportion than right-handed players, include the number of right handed vs left handed players in the data set. There are many more right handed players than left handed. Another unusual factor with the second portion of the thesis regarding age is that age can lead to higher level of experience as well as a lower overall physical ability. This distinction of age can affect how one interprets the results (whether one won/lost because of lack of skill or age). 
+
+In the rest of the report we intend to use graphs and visual summaries to further analyze our data. An intended graph is one that shows the proportion of winners based on dominant hand, and another intended graph is a plot of winners and losers based on age. After further analyzing this data we intend to interpret our findings and if needed come up with different methods or graphs we can use to further test both parts of our thesis. 
+
+
+
+## Analysis
+
+Our the first portion of the thesis is about the left-handed players will demonstrate a higher winning proportion than right-handed players. To support this, we are going to generate a summary table and a plot to discuss about it. Let's first start with the summary table.
+
+```{r include=FALSE}
+tennis = read.csv("atp_matches_2022.csv")
+
+# Selecting hard surface and filter out unknown dominant hand
+tennis_hand =
+  tennis %>% 
+  filter(surface == 'Hard' & winner_hand != 'U' & loser_hand != 'U') %>%
+  select(tourney_id, winner_hand, loser_hand) %>% 
+  rename(winner = winner_hand, loser = loser_hand) %>% 
+  pivot_longer(cols = 2:3, names_to = 'result', values_to = 'hand' ) 
+
+# Summarize right-handed tennis player winning the match
+right_hand = 
+  tennis_hand %>% 
+  filter(hand == 'R') %>%
+  count(result) %>% 
+  pivot_wider(names_from = 'result', values_from = 'n') %>% 
+  summarise(winner = winner,
+            loser = loser,
+            n = winner + loser,
+            p_hat = winner / n,
+            se_wald = sqrt(p_hat * (1 - p_hat) / n),
+            a_wald = p_hat - qnorm(1 - (1 - 0.95) / 2) * se_wald,
+            b_wald = p_hat + qnorm(1 - (1 - 0.95) / 2) * se_wald) %>% 
+  mutate(hand = 'Right')
+
+# Summarise left-handed tennis player winning the match
+left_hand = 
+  tennis_hand %>% 
+  filter(hand == 'L') %>% 
+  count(result) %>% 
+  pivot_wider(names_from = 'result', values_from = 'n') %>% 
+  summarise(winner = winner,
+            loser = loser,
+            n = winner + loser,
+            p_hat = winner / n,
+            se_wald = sqrt(p_hat * (1 - p_hat) / n),
+            a_wald = p_hat - qnorm(1 - (1 - 0.95) / 2) * se_wald,
+            b_wald = p_hat + qnorm(1 - (1 - 0.95) / 2) * se_wald) %>% 
+  mutate(hand = 'Left')
+
+# Combine both the summary to display as table and plot
+hand = full_join(right_hand, left_hand)
+```
+
+
+```{r}
+# Table of summary
+hand %>% 
+  select(hand, everything())
+```
+
+The table summarizes the tennis player winning and losing the 2022 tour-level main draw tennis matches on the hard surface tennis court based on their dominant hand respectively. 
+
+The `hand` column indicates the dominant hand of the tennis player, where the player is either right-handed or left-handed when playing the tennis. The `winner` indicates the number of tennis player winning the matches while the `loser` column indicates the number of tennis player losing the matches based on their dominant hand respectively. `n` column indicates the total number of tennis player play with their right or left hand. 
+
+The `p_hat` column indicates the estimated proportion of tennis player winning the game. The `se_wald` column indicates the accuracy of the estimated proportion that we calculated. The `a_wald` and `b_wald` column indicates the lower bound and upper bound of the range where the estimated proportion is going to fall within it with 95% Wald confidence. This calculated 95% Wald confidence can be used to generate the below plot for further discussion on our first question.
+
+
+```{r}
+# Plot to compare the winner's dominant hand
+hand %>% 
+  ggplot(aes(x = hand, y = p_hat)) +
+  geom_point() +
+  geom_linerange(aes(ymin = a_wald,
+                     ymax = b_wald),
+                 color = 'red') +
+  geom_linerange(aes(ymin = p_hat - se_wald, 
+                     ymax = p_hat + se_wald),
+                linewidth = 1.1, color = 'blue') +
+  labs(title = "Estimated Proportion of Tennis Player Winning The Match",
+       subtitle = "Right-handed and Left-handed, Wald 95% confidence interval",
+       x = "Dominant Hand",
+       y = "Estimated Proportion") +
+  theme_minimal()
+```
+
+The plot is generated by calculating the Wald 95% confidence interval of the proportion of tennis player winning the matches in 2022 tour-level main draw based on their dominant hand (right-handed / left-handed) on the hard surface tennis court. 
+
+The black points indicates the mean that the tennis player winning the game. The blue lines indicates the interval for one standard error above and below the mean. This standard error measures the dispersion of the estimated proportion of tennis player winning the match from the mean(black points). The red lines indicates the interval for the 95% Wald confidence for the proportion of tennis player winning the matches. From this plot, we can say there are 95% confidence that the true proportion of tennis player will win the match based on their dominant hand will fall within the range(red lines).
+
+From the summary table and the plot, we are done with the analysis for the first portion of our thesis.
+
+<br/>
+
+Now, we are moving on for the second portion of our thesis, which is age will have a significant impact on player performance in 2022 tour-level main draw matches on hard courts. To answer this, we are going to generate one table and three plots to compare the age for winners and losers of tennis matches and discuss their performance based on the comparison. Let's first start again with another table summary to show linear regression model for the age of winner and loser.
+
+```{r}
+# Read in the dataset
+tennis1 = read.csv("atp_matches_2022.csv")
+
+# Perform linear regression
+tennis_age <- tennis1 %>%
+  select(tourney_id, winner_age, loser_age) %>%
+  drop_na(winner_age, loser_age) %>%
+  rename(winner = winner_age, loser = loser_age)
+
+# Fit the linear regression model
+model <- lm(loser ~ winner, data = tennis_age)
+
+# Print the summary of the model
+summary(model)
+```
+
+From this summary table, we can know about the slope and intercept which best fitted on the linear regression model. The slope is 0.04945 while the intercept is 25.82689. Now, we continue to generate a scatter plot for the age of tennis player with the slope and intercept calculated based on the result of the tennis matches.
+
+```{r}
+# Add the regression line to the scatter plot
+ggplot(data = tennis_age, aes(x = winner, y = loser)) +
+  geom_point() +
+  geom_abline(intercept = coef(model)[1], slope = coef(model)[2], color = "red") +
+  labs(title = "Scatter Plot of Winner vs. Loser Age with Regression Line",
+       x = "Winner Age",
+       y = "Loser Age") +
+  theme_minimal()
+```
+
+The red line shows the trend for the age of winner and loser of tennis matches. We can see the upgoing trend line is not steep, which shows that most of the winner and loser have similar age. 
+
+```{r}
+# Box plot for age range comparison of winner and loser
+tennis_age %>% 
+  pivot_longer(cols = 2:3, names_to = 'result', values_to = 'age' )  %>% 
+  ggplot(aes(x = result, y = age, fill = result)) +
+  geom_boxplot(coef = Inf, alpha = 0.5) +
+  geom_point(position = position_jitter(width=0.3, height=0)) +
+  labs(title = "Age Range Comparison of Tennis Players In Tennis Match",
+       x = "Result of tennis match",
+       y = "Age",
+       fill = "Result") +
+  theme_minimal() 
+```
+
+This box plot shows the age range of the winner and loser. From this plot, we can see that the winner and loser have very alike age range which is showed by the black line of the box plot. This result also correspond to the previous scatter plot. The lower quartile, median and upper quartile of the winner age showed by the box is a little lower than those for loser age, but they are quite close to each other. For both winner and loser, the upper quartile is about the age of 30, the lower quartile is about the age of 24, and the median is about the age of 26.
+
+```{r}
+# Bar plot for winner and loser age distribution
+tennis_age %>% 
+  pivot_longer(2:3, names_to = "result", values_to = "age") %>% 
+  ggplot() +
+  geom_bar(aes(x = age, color = result), alpha = 0.7) +
+  facet_wrap(~result) +
+  labs(title = "Distribution of Tennis Players' Age",
+       x = "Age",
+       y = "Number of Players",
+       color = "Result") +
+  theme_classic()
+```
+
+These are two bar graph showing the age distribution of winner and loser to be compared side by side. The distribution on both graphs is fairly bell curved, with the most ages coming between the 23-27 age range for both graphs. This is also correspond with the previous two plots.
+
+By having the summary table and the three plots, we are done with our analysis for the second portion of our thesis.
+
+
+
+# Discussion
+
+Linear Model Analysis:
+
+Coefficients: In this case, the intercept is approximately 25.83, and the coefficient for the "winner" variable  is 0.04945.
+
+Interpretation of Coefficients: The coefficient for the "winner" variable (0.04945) suggests that, on average, for every one-unit increase in the age of the winner, the age of the loser (performance) increases by approximately 0.04945 units. However, this coefficient is relatively small.
+
+P-values and Significance: The p-value associated with the "winner" coefficient is 0.00781. This p-value indicates the probability of observing a t-statistic as extreme as the one calculated, assuming that there is no true relationship between the "winner" variable (age of the winner) and the "loser" variable (age of the loser). Since the p-value is less than the commonly used significance level of 0.05, it suggests that the "winner" variable is statistically significant in predicting the "loser" variable.
+
+R-squared: The R-squared value of 0.00243 indicates that only about 0.24% of the variance in the "loser" variable is explained by the "winner" variable in the model. This suggests that the age of the winner alone does not account for much of the variation in the performance (age of the loser) in tennis.
+
+F-statistic and p-value: The F-statistic tests the overall significance of the model. The associated p-value of 0.007807 suggests that the model as a whole is statistically significant in explaining the variation in the "loser" variable, considering the "winner" variable. However, since the R-squared value is low, this significance might not have much practical relevance.
+
+Residuals: The residuals section shows the distribution of the residuals (differences between predicted and actual values). It provides insights into the model's fit to the data. The residual standard error of 4.553 indicates the average magnitude of the residuals.
+
+The graph above looks like there is not a strong relationship between loser and winner age. However, we obtained a p-value of 0.00781 which is less than 0.05, so this would indicate that we can reject the null hypothesis. 
+
+Overall, based on this analysis, you can conclude that while there is a statistically significant relationship between the age of the winner and the age of the loser in tennis matches, the effect size is quite small, and the age of the winner explains only a minimal portion of the variation in the performance (age of the loser). Other factors beyond player age likely play a more substantial role in determining player performance.
+
+I think it is important to note that the bar graph of the loser age has a much higher count towards the older side (ages 27-35+). Just this graph shows that there looks to be more older losers than winners, thus also inferring that the younger a tennis player is, the more likely they are to win.
+
+Some potential shortcomings of our analysis are as follows:
+1. Data selection bias
+
+This data set does not represent the entire tennis population, it only represents matches played in the ATP tennis league during the year 2022. Thus, with added years and different tennis leagues, the data could differ.
+
+2. Assumptions of Linear Regression
+
+We assumed a linear regression relationship between the variables winner age and loser age, however there might be a more complex relationship that is not adequately captured by our model. 
+
+3. Outliers
+
+We know legendary tennis players such as Novak Djokovic are very older and have been playing a long time and still win the majority of their matches. I do not think many of his matches are in this data set, which skews the data. The presence of other outliers may also skew the distribution of ages and the regression line.
+
+
+How to improve in the future:
+
+1. Data enhancement - adding more years, more tennis leagues, to enhance sample size and include all matches
+
+2. Advanced visualization and models - as mentioned previously, we could try more complex models than the simple linear regression, to see if we find a better fit for our model.
+
+Other questions we could ask based on our main question is determining if the surface of the tennis court as well as age affect the outcome. We could also investigate if their is a certain age threshold that performance significantly drops.
+
+
+# References
+
+[^JeffSackmann2022]: Jeff Sackmann. (2022). Tennis ATP Matches 2022 [Data file]. Retrieved from https://github.com/JeffSackmann/tennis_atp/blob/master/atp_matches_2022.csv
+
+
+
