@@ -1,6 +1,6 @@
 ---
 title: "Final Project Report"
-author: "Group 314:1"
+author: "Vedant Grover"
 date: "2023-08-10"
 output: html_document
 ---
@@ -11,16 +11,6 @@ library(tidyverse)
 library(ggplot2)
 source("../scripts/ggprob.R")
 ```
-
-## Group Members
-
-1. Zach Wilcox
-
-2. Vedant Grover
-
-3. Livia Chandra
-
-4. Angelina Raj
 
 ## Introduction
 
